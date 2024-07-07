@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+enum Orientation {
+  portrait,
+  landscape,
+  free,
+}
+
 void main() {
   runApp(const MyApp());
 }
@@ -32,6 +38,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  Orientation orientation = Orientation.free;
 
   void _incrementCounter() {
     setState(() {
@@ -58,23 +65,7 @@ class _MyHomePageState extends State<MyHomePage> {
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             const SizedBox(height: 30),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: lockPortrait,
-                  child: const Text('Portrait'),
-                ),
-                ElevatedButton(
-                  onPressed: lockLandscape,
-                  child: const Text('Landscape'),
-                ),
-                ElevatedButton(
-                  onPressed: unlockOrientation,
-                  child: const Text('Free'),
-                ),
-              ],
-            )
+            buildOrientationButtons(),
           ],
         ),
       ),
@@ -83,6 +74,39 @@ class _MyHomePageState extends State<MyHomePage> {
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ),
+    );
+  }
+
+  Widget buildOrientationButtons() {
+    return SegmentedButton<Orientation>(
+      segments: const <ButtonSegment<Orientation>>[
+        ButtonSegment<Orientation>(
+            value: Orientation.landscape,
+            label: Text('Landscaoe'),
+            icon: Icon(Icons.landscape)),
+        ButtonSegment<Orientation>(
+            value: Orientation.portrait,
+            label: Text('Portrait'),
+            icon: Icon(Icons.portrait)),
+        ButtonSegment<Orientation>(
+            value: Orientation.free,
+            label: Text('Free'),
+            icon: Icon(Icons.screen_rotation_rounded)),
+      ],
+      selected: <Orientation>{orientation},
+      onSelectionChanged: (Set<Orientation> newSelection) {
+        setState(() {
+          orientation = newSelection.first;
+          switch (orientation) {
+            case Orientation.free:
+              unlockOrientation();
+            case Orientation.landscape:
+              lockLandscape();
+            case Orientation.portrait:
+              lockPortrait();
+          }
+        });
+      },
     );
   }
 
