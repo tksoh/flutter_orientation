@@ -37,22 +37,25 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
+class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
   Orientation orientation = Orientation.free;
   final _orientation = ValueNotifier<bool>(false);
+  late final AppLifecycleListener _listener;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     updateSystemRotationStatus();
+    _listener = AppLifecycleListener(
+      onResume: updateSystemRotationStatus,
+    );
   }
 
   @override
   void dispose() {
     super.dispose();
-    WidgetsBinding.instance.removeObserver(this);
+    _listener.dispose();
   }
 
   void updateSystemRotationStatus() async {
@@ -63,19 +66,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     setState(() {
       _counter++;
     });
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-    debugPrint('didChangeAppLifecycleState: state = $state');
-
-    switch (state) {
-      case AppLifecycleState.resumed:
-        updateSystemRotationStatus();
-      default:
-        return;
-    }
   }
 
   @override
@@ -149,7 +139,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       builder: (context, value, child) {
         final st = value ? 'UNLOCKED' : 'LOCKED';
         return Text(
-          'System Ratation: $st',
+          'System Auto Rotate: $st',
           style: TextStyle(
             color: value ? Colors.green : Colors.red,
           ),
