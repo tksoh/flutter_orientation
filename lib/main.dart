@@ -90,7 +90,7 @@ class _MyHomePageState extends State<MyHomePage> {
             icon: Icon(Icons.portrait)),
         ButtonSegment<Orientation>(
             value: Orientation.free,
-            label: Text('Free'),
+            label: Text('System'),
             icon: Icon(Icons.screen_rotation_rounded)),
       ],
       selected: <Orientation>{orientation},
