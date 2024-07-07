@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:rotation_check/rotation_check.dart';
 
 enum Orientation {
   portrait,
@@ -36,14 +37,45 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   int _counter = 0;
   Orientation orientation = Orientation.free;
+  final _orientation = ValueNotifier<bool>(false);
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    updateSystemRotationStatus();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+  }
+
+  void updateSystemRotationStatus() async {
+    _orientation.value = await getSystemRotation();
+  }
 
   void _incrementCounter() {
     setState(() {
       _counter++;
     });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    debugPrint('didChangeAppLifecycleState: state = $state');
+
+    switch (state) {
+      case AppLifecycleState.resumed:
+        updateSystemRotationStatus();
+      default:
+        return;
+    }
   }
 
   @override
@@ -66,6 +98,8 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             const SizedBox(height: 30),
             buildOrientationButtons(),
+            const SizedBox(height: 30),
+            buildSystemRotationStatus(),
           ],
         ),
       ),
@@ -108,6 +142,27 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       },
     );
+  }
+
+  Widget buildSystemRotationStatus() {
+    return ValueListenableBuilder(
+      builder: (context, value, child) {
+        final st = value ? 'UNLOCKED' : 'LOCKED';
+        return Text(
+          'System Ratation: $st',
+          style: TextStyle(
+            color: value ? Colors.green : Colors.red,
+          ),
+        );
+      },
+      valueListenable: _orientation,
+    );
+  }
+
+  Future<bool> getSystemRotation() async {
+    final rotationCheck = RotationCheck();
+    final isRotationEnabled = await rotationCheck.isRotationLocked();
+    return isRotationEnabled ?? false;
   }
 
   void lockLandscape() {
